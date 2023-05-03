@@ -19,7 +19,8 @@ class MyApp extends StatelessWidget {
         title: 'Namer App',
         theme: ThemeData(
           useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
+          //                                (muda a cor do botão e background )
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         ),
         home: MyHomePage(),
       ),
@@ -50,35 +51,60 @@ class MyAppState extends ChangeNotifier {
 }
 
 // Home page do app do lado esquedo da tela
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  var selectedIndex = 0;
+
   @override
   Widget build(BuildContext context) {
+    // Tratamento de erro garantindo que será
+    // 0 | 1
+    Widget page;
+    switch (selectedIndex) {
+      case 0:
+        page = GeneratorPage();
+        break;
+      case 1:
+        page = FavoritesPage();
+        break;
+      default:
+        throw UnimplementedError('no widget for $selectedIndex');
+    }
+
     return Scaffold(
       body: Row(
         children: [
           SafeArea(
             child: NavigationRail(
-              extended: false,
+              extended: true, //Tamanho da pag Home se colocar"false"fica menor
               destinations: [
                 NavigationRailDestination(
                   icon: Icon(Icons.home),
-                  label: Text('Home'),
+                  label: Text('Casa'),
                 ),
                 NavigationRailDestination(
                   icon: Icon(Icons.favorite),
-                  label: Text('Favorites'),
+                  label: Text('Favoritos'),
                 ),
               ],
-              selectedIndex: 0,
+              selectedIndex: selectedIndex, // Retorna 0 ou 1 quando precionados
               onDestinationSelected: (value) {
-                print('selected: $value');
+                setState(() {
+                  selectedIndex = value;
+                });
               },
             ),
           ),
           Expanded(
             child: Container(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: GeneratorPage(),
+              color: Theme.of(context)
+                  .colorScheme
+                  .primaryContainer, //Cor background da pag 2
+              child: page, //Chama o Switch 0 | 1
             ),
           ),
         ],
@@ -158,6 +184,35 @@ class BigCard extends StatelessWidget {
           semanticsLabel: pair.asPascalCase,
         ),
       ),
+    );
+  }
+}
+
+class FavoritesPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+
+    if (appState.favorites.isEmpty) {
+      return Center(
+        child: Text('No favorites yet.'),
+      );
+    }
+
+    //mostra a list criada com os favoritos
+    return ListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text('Você tem '
+              '${appState.favorites.length} favoritos:'),
+        ),
+        for (var pair in appState.favorites) //cria a lista com inconis
+          ListTile(
+            leading: Icon(Icons.favorite),
+            title: Text(pair.asLowerCase),
+          ),
+      ],
     );
   }
 }
